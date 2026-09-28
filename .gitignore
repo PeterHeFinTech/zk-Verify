@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+public/proofs/
+data/
+*.private.json
+private-input.json
+*.ptau
+*.zkey
+*.wtns
+proof.json
+public.json
+.DS_Store
+
+tools/
+public/artifacts/

@@ -146,3 +146,18 @@ Compiled signal order:
 This CLI rejects unexpected context/key/expiry and invalid proofs. It does not authenticate the policy file or source data, implement session binding or revocation, or establish regulatory compliance. The browser does not yet use this independent policy verifier.
 
 **Artifact migration:** regenerate proving/verification keys for changed circuits. Do not pair old keys or the existing contract with new circuit versions. See the review for unresolved dependency audit findings before deployment.
+
+
+## Request-bound KYC API and browser workflow
+
+A separate `kyc-session-v1` demonstration now connects local proving to an independent, policy-enforcing verifier API with SQLite persistence. It adds authenticated roles/tenant boundaries, issuer registration, independent root approval, current-root revocation semantics, constrained request binding and atomic replay protection. The original three-module workbench remains available.
+
+```bash
+npm run setup:workflow  # development artifacts + synthetic credentials, once
+npm run api            # terminal 1, loopback only
+npm run dev            # terminal 2
+```
+
+Then register/propose/approve the synthetic issuer root using the CLI and open **Open trusted KYC workflow** in the browser. See [workflow runbook](docs/workflow-runbook.md) for exact commands, credential handling, API contract, revocation demo, tests and unresolved production requirements. Node 22.16+ is required; Node SQLite is experimental. Setup does not overwrite legacy artifacts or upload data.
+
+**This is a local FYP workflow, not a production platform.** No SSO/MFA, live financial connectors, audited key ceremony, production TLS or production recovery infrastructure is implemented. Never expose the demo API publicly or use real customer data.

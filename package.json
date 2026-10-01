@@ -10,7 +10,12 @@
     "test": "node --test tests/circuits.test.mjs",
     "test:browser": "node scripts/test-browser.mjs",
     "benchmark:kyc": "node scripts/benchmark-kyc.mjs",
-    "setup:test": "node scripts/setup-test-artifacts.mjs"
+    "setup:test": "node scripts/setup-test-artifacts.mjs",
+    "setup:workflow": "node scripts/setup-workflow.mjs",
+    "api": "node --experimental-sqlite server/main.mjs",
+    "test:workflow": "node --experimental-sqlite scripts/test-workflow.mjs",
+    "workflow": "node scripts/workflow-client.mjs",
+    "test:workflow:browser": "node --experimental-sqlite scripts/test-workflow-browser.mjs"
   },
   "dependencies": {
     "circomlib": "^2.0.5",

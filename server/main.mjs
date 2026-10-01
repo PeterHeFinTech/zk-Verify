@@ -1,0 +1,11 @@
+import { readFileSync, mkdirSync, chmodSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { createService } from './service.mjs';
+process.umask(0o077);
+const configPath=resolve(process.argv[2]||'build/workflow/config.json');
+const database=resolve(process.argv[3]||'build/workflow/workflow.sqlite');
+mkdirSync(dirname(database),{recursive:true,mode:0o700});
+const app=createService({config:JSON.parse(readFileSync(configPath)),database});
+chmodSync(database,0o600);
+app.server.listen(8787,'127.0.0.1',()=>console.log('Development verifier API: http://127.0.0.1:8787 (loopback only; no production TLS/SSO)'));
+for(const signal of ['SIGINT','SIGTERM']) process.on(signal,async()=>{await app.close();process.exit(0);});

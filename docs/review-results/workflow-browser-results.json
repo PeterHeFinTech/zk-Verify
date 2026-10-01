@@ -1,0 +1,10 @@
+{
+  "browser": "154.0.8037.92",
+  "accepted": true,
+  "proofOnlySubmission": true,
+  "credentialSecretAbsentFromObservedRequests": true,
+  "externalHttpRequests": 0,
+  "pageErrors": [],
+  "mobileOverflow": false,
+  "limitation": "Local synthetic fixture; request-body inspection is not a comprehensive privacy or browser security audit."
+}

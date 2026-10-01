@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import * as snarkjs from 'snarkjs';
+import { Workflow } from './Workflow.jsx';
 
 const MODULES = {
   kyc: {
@@ -45,6 +46,7 @@ async function readJson(file) {
 }
 
 export function App() {
+  const [workflowMode, setWorkflowMode] = useState(false);
   const inputRevision = useRef(0);
   const [moduleId, setModuleId] = useState('kyc');
   const [files, setFiles] = useState({});
@@ -132,7 +134,8 @@ export function App() {
           <h1>Verify the claim.<br /><em>Keep the evidence private.</em></h1>
           <p className="hero-copy">A three-module research prototype for privacy-preserving KYC, exact-match screening, and solvency checks. Your private JSON stays in the browser during proof generation.</p>
         </section>
-        <div className="layout">
+        <button disabled={busy} onClick={() => setWorkflowMode(!workflowMode)}>{workflowMode ? "Open developer workbench" : "Open trusted KYC workflow"}</button>
+        {workflowMode ? <Workflow /> : <div className="layout">
           <nav className="module-nav" aria-label="Modules">
             <p className="section-label">MODULES</p>
             {Object.entries(MODULES).map(([id, item], index) => <button key={id} className={`module-link ${moduleId === id ? 'active' : ''}`} disabled={busy} onClick={() => switchModule(id)}><span className="module-number">0{index + 1}</span><span>{item.title}</span><span className="arrow">↗</span></button>)}
@@ -146,7 +149,7 @@ export function App() {
             <section className="panel"><div className="panel-heading"><div><span className="step">02</span><h3>Load private input</h3></div><span className="muted">JSON file · processed in your browser</span></div><div className="input-row"><label className="upload input-upload"><span>Witness input</span><small>{input ? 'JSON loaded' : 'Choose JSON file'}</small><input disabled={busy} type="file" accept=".json,application/json" onChange={(event) => loadInput(event.target.files?.[0])} /></label><details><summary>Expected fields</summary><pre>{module.schema}</pre></details></div><p className="subtle">The JSON must use the fixed array lengths defined in the circuit. See README for field bounds and root calculation.</p></section>
             <section className="panel result-panel"><div className="panel-heading"><div><span className="step">03</span><h3>Generate and verify</h3></div></div><button className="primary-button" disabled={!ready || !input || busy} onClick={generate}>{busy ? 'Working…' : 'Generate proof locally'}<span>→</span></button><p className="result-status" role="status">{status}</p>{proof && <div className="result-actions"><button onClick={() => downloadJson(`${moduleId}-proof.json`, proof)}>Download proof</button><button onClick={() => downloadJson(`${moduleId}-public.json`, publicSignals)}>Download public signals</button></div>}</section>
           </div>
-        </div>
+        </div>}
       </main>
       <footer>zk-Verify · Final year project prototype · No regulatory certification implied</footer>
     </div>

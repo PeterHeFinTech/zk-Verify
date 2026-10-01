@@ -1,0 +1,40 @@
+{
+  "browser": "154.0.8037.92",
+  "results": [
+    {
+      "module": "kyc",
+      "browserProveAndVerifyMs": 460,
+      "proofJsonBytes": 719,
+      "publicSignals": 2,
+      "independentVerify": true,
+      "verifierPolicyChecksPassed": true,
+      "tamperedSignalsRejected": true,
+      "invalidWitnessRejected": true
+    },
+    {
+      "module": "aml",
+      "browserProveAndVerifyMs": 417,
+      "proofJsonBytes": 723,
+      "publicSignals": 4,
+      "independentVerify": true,
+      "verifierPolicyChecksPassed": true,
+      "tamperedSignalsRejected": true,
+      "invalidWitnessRejected": true
+    },
+    {
+      "module": "solvency",
+      "browserProveAndVerifyMs": 381,
+      "proofJsonBytes": 723,
+      "publicSignals": 4,
+      "independentVerify": true,
+      "verifierPolicyChecksPassed": true,
+      "tamperedSignalsRejected": true,
+      "invalidWitnessRejected": true
+    }
+  ],
+  "externalRequests": [],
+  "pageErrors": [],
+  "malformedJsonRejected": true,
+  "mobileOverflow": false,
+  "note": "Single local run, synthetic inputs and development keys. Browser time includes witness + proving + verification + UI overhead."
+}

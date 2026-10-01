@@ -1,6 +1,7 @@
 pragma circom 2.1.6;
 
 include "circomlib/circuits/poseidon.circom";
+include "bounded_count.circom";
 include "circomlib/circuits/comparators.circom";
 
 // Bounded exact-match research circuit, not a complete PSI protocol.
@@ -21,14 +22,10 @@ template PrivateScreening() {
     signal customerFlags[8];
     signal watchlistFlags[8];
 
-    component customerLimit = LessThan(4);
-    customerLimit.in[0] <== customerCount;
-    customerLimit.in[1] <== 9;
-    customerLimit.out === 1;
-    component watchlistLimit = LessThan(4);
-    watchlistLimit.in[0] <== watchlistCount;
-    watchlistLimit.in[1] <== 9;
-    watchlistLimit.out === 1;
+    component customerLimit = BoundedCount8();
+    customerLimit.count <== customerCount;
+    component watchlistLimit = BoundedCount8();
+    watchlistLimit.count <== watchlistCount;
 
     for (var i = 0; i < 8; i++) {
         customerHash.inputs[i] <== customers[i];
@@ -48,12 +45,14 @@ template PrivateScreening() {
     watchlistHash.out === watchlistRoot;
 
     component equal[8][8];
+    signal bothActive[8][8];
     for (var c = 0; c < 8; c++) {
         for (var w = 0; w < 8; w++) {
             equal[c][w] = IsEqual();
             equal[c][w].in[0] <== customers[c];
             equal[c][w].in[1] <== watchlist[w];
-            customerFlags[c] * watchlistFlags[w] * equal[c][w].out === 0;
+            bothActive[c][w] <== customerFlags[c] * watchlistFlags[w];
+            bothActive[c][w] * equal[c][w].out === 0;
         }
     }
 }

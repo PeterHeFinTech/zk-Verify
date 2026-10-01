@@ -15,7 +15,7 @@ The prototype uses React, Circom, `snarkjs`, and Groth16. It does not include cu
 From the project directory:
 
 ```bash
-cd /Users/hetianqu/Documents/zk-Verify
+cd zk-Verify
 bash scripts/install-dependencies.sh
 bash scripts/prepare-circuits.sh
 npm run dev
@@ -86,7 +86,7 @@ Use the same smallest currency unit throughout. Each amount must be less than `2
 4. Click **Generate proof locally**. The browser computes the witness and proof, then verifies the proof using the loaded verification key.
 5. If verification succeeds, download the proof and public signals as separate JSON files.
 
-Keep the private input file private. The application has no backend API and does not upload that file. It loads Google Fonts from the web when available; remove the font import in `src/styles.css` if you require fully offline operation. The downloaded proof is meaningful only when a verifier also trusts the verification key and the public issuer root or dataset commitments.
+Keep the private input file private. The application has no backend API and does not upload that file. The external Google Fonts import has been removed. Local browser regression tests observed no external HTTP requests; this is not a security guarantee against compromised hosting, dependencies or browser extensions. The downloaded proof is meaningful only when a verifier also trusts the verification key and the public issuer root or dataset commitments.
 
 ## Project structure
 
@@ -106,3 +106,43 @@ Keep the private input file private. The application has no backend API and does
 Groth16 setup in this repository is for local development. The generated verifier contracts have not been deployed to Sepolia. Cryptographic validity means that a circuit relation holds for the committed inputs; it does not establish that the supplied records are complete or that a regulator accepts the process.
 
 The current circuits use fixed eight-slot arrays. To evaluate larger volumes, the circuit bounds and setup must be changed and the resulting versions measured separately. Record constraint count, witness and proof generation time, verification time, proof size, key size, and memory use on a documented machine. Test both valid claims and deliberately invalid inputs before reporting results.
+
+
+## Reviewed development workflow (2026-10-01)
+
+See [Engineering review](docs/engineering-review.md) for verified defects, measurements, tradeoffs, remaining limitations and the recommended scope. These changes are not a production-readiness certification.
+
+A pinned npm Circom compiler and browser tests are now included. With Node.js/npm installed:
+
+```bash
+npm ci --ignore-scripts
+npm test
+npm run setup:test       # local single-party development keys ONLY
+npm run test:browser     # local Chrome, CHROME_PATH, or installed Playwright Chromium
+npm run benchmark:kyc
+npm run build
+npm run dev
+```
+
+`setup:test` writes artifacts and synthetic input to `build/test-setup/<module>/`, NOT `public/artifacts/`, and does not overwrite the checked-in Solidity verifier. Load that directory's `circuit.wasm`, `proving_key.zkey`, `verification_key.json`, and `input.private.json` in the website. Never use these development keys or synthetic records to support a real claim. Larger KYC profiles require new appropriately sized setup; the test setup covers only the default profiles.
+
+On the review machine, Node was isolated under ignored `tools/`. The local convenience command `python3 tools/run.py npm test` prepends that runtime to PATH; it is not required or available on a fresh clone.
+
+The KYC circuit template now supports configurable depth; the normal UI/source builder still defaults to eight leaves. The larger-depth benchmark constructs synthetic paths, not million-record registries. Field values in source JSON must be decimal **strings**; `selectedIndex` remains an index.
+
+### Separate verifier-owned policy
+
+```bash
+node scripts/verify-proof.mjs proof.json public.json verification_key.json verifier-policy.json
+```
+
+The policy file must be provisioned independently by the verifier—not accepted from a proof uploader. It has `version: 1`, `module`, an ISO `expiresAt`, `verificationKeySha256` (SHA-256 of exact trusted key-file bytes), and `expected` mapping **every** public signal name to a decimal string. KYC uses the verifier's current UTC day. No sample policy is automatically trusted.
+
+Compiled signal order:
+- KYC: issuerRoot, currentDay.
+- Screening: customerCount, watchlistCount, customerRoot, watchlistRoot.
+- Balance coverage: assetCount, liabilityCount, assetRoot, liabilityRoot.
+
+This CLI rejects unexpected context/key/expiry and invalid proofs. It does not authenticate the policy file or source data, implement session binding or revocation, or establish regulatory compliance. The browser does not yet use this independent policy verifier.
+
+**Artifact migration:** regenerate proving/verification keys for changed circuits. Do not pair old keys or the existing contract with new circuit versions. See the review for unresolved dependency audit findings before deployment.

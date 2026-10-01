@@ -1,6 +1,7 @@
 pragma circom 2.1.6;
 
 include "circomlib/circuits/poseidon.circom";
+include "bounded_count.circom";
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/bitify.circom";
 
@@ -27,14 +28,10 @@ template PrivateSolvency() {
     assetSums[0] <== 0;
     liabilitySums[0] <== 0;
 
-    component assetLimit = LessThan(4);
-    assetLimit.in[0] <== assetCount;
-    assetLimit.in[1] <== 9;
-    assetLimit.out === 1;
-    component liabilityLimit = LessThan(4);
-    liabilityLimit.in[0] <== liabilityCount;
-    liabilityLimit.in[1] <== 9;
-    liabilityLimit.out === 1;
+    component assetLimit = BoundedCount8();
+    assetLimit.count <== assetCount;
+    component liabilityLimit = BoundedCount8();
+    liabilityLimit.count <== liabilityCount;
 
     for (var i = 0; i < 8; i++) {
         assetHash.inputs[i] <== assets[i];

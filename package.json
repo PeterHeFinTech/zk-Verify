@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test tests/circuits.test.mjs",
+    "test:browser": "node scripts/test-browser.mjs",
+    "benchmark:kyc": "node scripts/benchmark-kyc.mjs",
+    "setup:test": "node scripts/setup-test-artifacts.mjs"
   },
   "dependencies": {
     "circomlib": "^2.0.5",
@@ -16,7 +20,9 @@
     "snarkjs": "^0.7.5"
   },
   "devDependencies": {
+    "@playwright/test": "1.51.1",
     "@vitejs/plugin-react": "^4.7.0",
+    "circom2": "0.2.22",
     "vite": "^6.3.5"
   }
 }

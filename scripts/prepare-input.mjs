@@ -14,7 +14,7 @@ const FIELD = 218882428718392752222464057452572750885483644004160343436982041865
 const MAX32 = 2n ** 32n;
 
 function field(value, label) {
-  if (!/^(0|[1-9][0-9]*)$/.test(String(value))) throw new Error(`${label} must be a non-negative decimal integer`);
+  if (typeof value !== 'string' || !/^(0|[1-9][0-9]*)$/.test(value)) throw new Error(`${label} must be a non-negative decimal integer`);
   const number = BigInt(value);
   if (number >= FIELD) throw new Error(`${label} exceeds the circuit field`);
   return number;
@@ -70,6 +70,7 @@ if (kind === 'aml') {
     throw new Error('selectedIndex must identify an existing credential');
   }
   const credential = source.credentials[index];
+  if (credential.verified !== '1') throw new Error('Selected credential must be verified');
   const leaves = source.credentials.map((entry, i) => hash([
     field(entry.secret, `credentials[${i}].secret`),
     field(entry.verified, `credentials[${i}].verified`),

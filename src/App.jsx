@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import * as snarkjs from 'snarkjs';
 
 const MODULES = {
@@ -45,6 +45,7 @@ async function readJson(file) {
 }
 
 export function App() {
+  const inputRevision = useRef(0);
   const [moduleId, setModuleId] = useState('kyc');
   const [files, setFiles] = useState({});
   const [input, setInput] = useState(null);
@@ -56,6 +57,8 @@ export function App() {
   const ready = FILES.every((name) => files[name]);
 
   function switchModule(id) {
+    if (busy || id === moduleId) return;
+    inputRevision.current += 1;
     setModuleId(id);
     setFiles({});
     setInput(null);
@@ -65,21 +68,29 @@ export function App() {
   }
 
   function setArtifact(name, file) {
+    if (busy) return;
+    setStatus('Artifacts changed. Generate a new proof to verify this selection.');
     setFiles((current) => ({ ...current, [name]: file || undefined }));
     setProof(null);
     setPublicSignals(null);
   }
 
   async function loadInput(file) {
-    if (!file) return;
+    if (!file || busy) return;
+    const revision = ++inputRevision.current;
+    setInput(null);
+    setProof(null);
+    setPublicSignals(null);
     try {
       const parsed = await readJson(file);
+      if (revision !== inputRevision.current) return;
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Expected a JSON object.');
       setInput(parsed);
       setProof(null);
       setPublicSignals(null);
       setStatus(`Loaded ${file.name} locally. No input has been transmitted.`);
     } catch (error) {
+      if (revision !== inputRevision.current) return;
       setInput(null);
       setStatus(`Input error: ${error.message}`);
     }
@@ -88,6 +99,8 @@ export function App() {
   async function generate() {
     if (!ready || !input) return;
     setBusy(true);
+    setProof(null);
+    setPublicSignals(null);
     setStatus('Generating witness and proof in this browser…');
     const urls = {};
     try {
@@ -99,7 +112,7 @@ export function App() {
       if (!valid) throw new Error('Local proof verification failed.');
       setProof(result.proof);
       setPublicSignals(result.publicSignals);
-      setStatus('Proof generated and verified locally. You may download it with its public signals.');
+      setStatus('Circuit relation verified locally with the uploaded key. Issuer/list trust, freshness and regulatory acceptance have NOT been checked.');
     } catch (error) {
       setProof(null);
       setPublicSignals(null);
@@ -122,15 +135,15 @@ export function App() {
         <div className="layout">
           <nav className="module-nav" aria-label="Modules">
             <p className="section-label">MODULES</p>
-            {Object.entries(MODULES).map(([id, item], index) => <button key={id} className={`module-link ${moduleId === id ? 'active' : ''}`} onClick={() => switchModule(id)}><span className="module-number">0{index + 1}</span><span>{item.title}</span><span className="arrow">↗</span></button>)}
+            {Object.entries(MODULES).map(([id, item], index) => <button key={id} className={`module-link ${moduleId === id ? 'active' : ''}`} disabled={busy} onClick={() => switchModule(id)}><span className="module-number">0{index + 1}</span><span>{item.title}</span><span className="arrow">↗</span></button>)}
             <div className="nav-note"><strong>Current stage</strong><br />Code and circuit definitions are included. No proving artifacts or operational data are bundled.</div>
           </nav>
-          <div className="workspace">
+          <div className="workspace" key={moduleId}>
             <div className="workspace-header"><div><p className="eyebrow">MODULE / {moduleId.toUpperCase()}</p><h2>{module.title}</h2><p>{module.subtitle}</p></div><span className="status-pill">Prototype</span></div>
             <div className="info-grid"><div className="info-card"><span className="section-label">PROVEN STATEMENT</span><p>{module.statement}</p></div><div className="info-card"><span className="section-label">PUBLIC DISCLOSURE</span><p>{module.disclosure}</p></div></div>
             <div className="warning"><strong>Scope:</strong> {module.caveat}</div>
-            <section className="panel"><div className="panel-heading"><div><span className="step">01</span><h3>Load proof artifacts</h3></div><span className="muted">Produced by the local circuit setup script</span></div><div className="upload-grid">{FILES.map((name) => <label className="upload" key={name}><span>{name}</span><small>{files[name]?.name || 'Choose file'}</small><input type="file" accept={name.endsWith('.json') ? '.json' : name.endsWith('.wasm') ? '.wasm' : '.zkey'} onChange={(event) => setArtifact(name, event.target.files?.[0])} /></label>)}</div></section>
-            <section className="panel"><div className="panel-heading"><div><span className="step">02</span><h3>Load private input</h3></div><span className="muted">JSON file · processed in your browser</span></div><div className="input-row"><label className="upload input-upload"><span>Witness input</span><small>{input ? 'JSON loaded' : 'Choose JSON file'}</small><input type="file" accept=".json,application/json" onChange={(event) => loadInput(event.target.files?.[0])} /></label><details><summary>Expected fields</summary><pre>{module.schema}</pre></details></div><p className="subtle">The JSON must use the fixed array lengths defined in the circuit. See README for field bounds and root calculation.</p></section>
+            <section className="panel"><div className="panel-heading"><div><span className="step">01</span><h3>Load proof artifacts</h3></div><span className="muted">Produced by the local circuit setup script</span></div><div className="upload-grid">{FILES.map((name) => <label className="upload" key={name}><span>{name}</span><small>{files[name]?.name || 'Choose file'}</small><input disabled={busy} type="file" accept={name.endsWith('.json') ? '.json' : name.endsWith('.wasm') ? '.wasm' : '.zkey'} onChange={(event) => setArtifact(name, event.target.files?.[0])} /></label>)}</div></section>
+            <section className="panel"><div className="panel-heading"><div><span className="step">02</span><h3>Load private input</h3></div><span className="muted">JSON file · processed in your browser</span></div><div className="input-row"><label className="upload input-upload"><span>Witness input</span><small>{input ? 'JSON loaded' : 'Choose JSON file'}</small><input disabled={busy} type="file" accept=".json,application/json" onChange={(event) => loadInput(event.target.files?.[0])} /></label><details><summary>Expected fields</summary><pre>{module.schema}</pre></details></div><p className="subtle">The JSON must use the fixed array lengths defined in the circuit. See README for field bounds and root calculation.</p></section>
             <section className="panel result-panel"><div className="panel-heading"><div><span className="step">03</span><h3>Generate and verify</h3></div></div><button className="primary-button" disabled={!ready || !input || busy} onClick={generate}>{busy ? 'Working…' : 'Generate proof locally'}<span>→</span></button><p className="result-status" role="status">{status}</p>{proof && <div className="result-actions"><button onClick={() => downloadJson(`${moduleId}-proof.json`, proof)}>Download proof</button><button onClick={() => downloadJson(`${moduleId}-public.json`, publicSignals)}>Download public signals</button></div>}</section>
           </div>
         </div>

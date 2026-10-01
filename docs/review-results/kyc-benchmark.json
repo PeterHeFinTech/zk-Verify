@@ -1,0 +1,54 @@
+{
+  "node": "v22.16.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M3",
+  "ramBytes": 25769803776,
+  "rows": [
+    {
+      "depth": 3,
+      "theoreticalLeafCapacity": 8,
+      "nonlinearConstraints": 1099,
+      "linearConstraints": 1168,
+      "totalConstraints": 2267,
+      "compileMs": 828,
+      "medianWitnessMs": 1.91,
+      "wasmBytes": 2174922,
+      "r1csBytes": 308492
+    },
+    {
+      "depth": 8,
+      "theoreticalLeafCapacity": 256,
+      "nonlinearConstraints": 2329,
+      "linearConstraints": 2538,
+      "totalConstraints": 4867,
+      "compileMs": 815,
+      "medianWitnessMs": 3.89,
+      "wasmBytes": 2189836,
+      "r1csBytes": 656092
+    },
+    {
+      "depth": 16,
+      "theoreticalLeafCapacity": 65536,
+      "nonlinearConstraints": 4297,
+      "linearConstraints": 4730,
+      "totalConstraints": 9027,
+      "compileMs": 845,
+      "medianWitnessMs": 7.05,
+      "wasmBytes": 2213142,
+      "r1csBytes": 1212252
+    },
+    {
+      "depth": 20,
+      "theoreticalLeafCapacity": 1048576,
+      "nonlinearConstraints": 5281,
+      "linearConstraints": 5826,
+      "totalConstraints": 11107,
+      "compileMs": 883,
+      "medianWitnessMs": 8.68,
+      "wasmBytes": 2224913,
+      "r1csBytes": 1490332
+    }
+  ],
+  "limitations": "Synthetic Merkle paths only, NOT populated registries. Five warm witness runs per depth, single compile. No larger-depth Groth16 setup/proving, registry build/update, peak memory, concurrency or network benchmark."
+}
